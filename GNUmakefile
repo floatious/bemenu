@@ -2,7 +2,7 @@ VERSION ?= $(shell cat VERSION)
 PREFIX ?= /usr/local
 includedir ?= /include
 bindir ?= /bin
-libdir ?= /lib
+libdir ?= /lib64
 mandir ?= /share/man/man1
 
 GIT_SHA1 = $(shell git rev-parse HEAD 2>/dev/null || printf 'nogit')
@@ -11,16 +11,16 @@ MAKEFLAGS += --no-builtin-rules
 WARNINGS = -Wall -Wextra -Wpedantic -Wformat=2 -Wstrict-aliasing=3 -Wstrict-overflow=5 -Wstack-usage=12500 \
 	-Wfloat-equal -Wcast-align -Wpointer-arith -Wchar-subscripts -Warray-bounds=2 -Wno-unknown-warning-option
 
-override CFLAGS ?= -g -O2 $(WARNINGS)
+override CFLAGS += -g -O2 $(WARNINGS) -fPIC
 override CFLAGS += -std=c99
-override CPPFLAGS ?= -D_FORTIFY_SOURCE=2
+override CPPFLAGS += -D_FORTIFY_SOURCE=2
 override CPPFLAGS += -DBM_VERSION=\"$(VERSION)\" -DBM_PLUGIN_VERSION=\"$(VERSION)-$(GIT_SHA1)\" -DINSTALL_LIBDIR=\"$(PREFIX)$(libdir)\"
 override CPPFLAGS += -D_DEFAULT_SOURCE -Ilib
 
 libs = libbemenu.so
 pkgconfigs = bemenu.pc
 bins = bemenu bemenu-run
-renderers = bemenu-renderer-x11.so bemenu-renderer-curses.so bemenu-renderer-wayland.so
+renderers = bemenu-renderer-curses.so bemenu-renderer-wayland.so
 all: $(bins) $(renderers)
 clients: $(bins)
 curses: bemenu-renderer-curses.so
@@ -109,7 +109,7 @@ install-man: man/bemenu.1 man/bemenu-run.1
 	mkdir -p "$(DESTDIR)$(PREFIX)$(mandir)"
 	cp $^ "$(DESTDIR)$(PREFIX)$(mandir)"
 
-install-renderers: install-curses install-wayland install-x11
+install-renderers: install-curses install-wayland
 
 install-curses:
 	mkdir -p "$(DESTDIR)$(PREFIX)$(libdir)/bemenu"
